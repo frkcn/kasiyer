@@ -1,0 +1,27 @@
+{
+    "name": "frkcn/kasiyer",
+    "description": "Kasiyer makes Iyzico's subscription billing services easy and fun to use",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Faruk Can",
+            "email": "faarukcan@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Frkcn\\Kasiyer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Frkcn\\Kasiyer\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0@dev"
+    }
+}
