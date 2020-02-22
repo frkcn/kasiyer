@@ -73,6 +73,22 @@ trait Billable
     }
 
     /**
+     * Get the Iyzico customer instance for the current user or create one.
+     *
+     * @param Customer $options
+     * @return SubscriptionCustomer
+     * @throws InvalidIyzicoCustomer
+     */
+    public function createOrGetIyzicoCustomer(Customer $options)
+    {
+        if ($this->iyzico_id) {
+            return $this->asIyzicoCustomer();
+        }
+
+        return $this->createAsIyzicoCustomer($options);
+    }
+
+    /**
      * Get the Iyzico customer for the model.
      *
      * @return SubscriptionCustomer
