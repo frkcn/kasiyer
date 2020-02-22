@@ -31,6 +31,18 @@ class CustomerTest extends IntegrationTestCase
 
         $this->assertEquals('Yunus Emre', $customer->getName());
     }
+    
+    /** @test */
+    public function retrieve_customers_in_iyzico()
+    {
+        $user = $this->createCustomer('hakanozdemir');
+        $iyzicoCustomer = $this->iyzicoCustomer($user->email);
+        $user->createAsIyzicoCustomer($iyzicoCustomer);
+
+        $customer = $user->asIyzicoCustomer();
+
+        $this->assertEquals($user->email, $customer->getEmail());
+    }
 
     private function iyzicoCustomer($email): Customer
     {

@@ -7,6 +7,7 @@ namespace Frkcn\Kasiyer;
 use Iyzipay\Model\Customer;
 use Iyzipay\Model\Subscription\SubscriptionCustomer;
 use Iyzipay\Request\Subscription\SubscriptionCreateCustomerRequest;
+use Iyzipay\Request\Subscription\SubscriptionRetrieveCustomerRequest;
 use Iyzipay\Request\Subscription\SubscriptionUpdateCustomerRequest;
 
 trait Billable
@@ -44,6 +45,19 @@ trait Billable
         $request->setCustomer($options);
 
         return SubscriptionCustomer::update($request, $this->iyzicoOptions());
+    }
+
+    /**
+     * Get the Iyzico customer for the model.
+     *
+     * @return SubscriptionCustomer
+     */
+    public function asIyzicoCustomer()
+    {
+        $request = new SubscriptionRetrieveCustomerRequest();
+        $request->setCustomerReferenceCode($this->iyzico_id);
+
+        return SubscriptionCustomer::retrieve($request, $this->iyzicoOptions());
     }
 
     /**
