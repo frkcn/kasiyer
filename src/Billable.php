@@ -4,6 +4,7 @@
 namespace Frkcn\Kasiyer;
 
 
+use Frkcn\Kasiyer\Exceptions\InvalidIyzicoCustomer;
 use Iyzipay\Model\Customer;
 use Iyzipay\Model\Subscription\SubscriptionCustomer;
 use Iyzipay\Request\Subscription\SubscriptionCreateCustomerRequest;
@@ -12,6 +13,30 @@ use Iyzipay\Request\Subscription\SubscriptionUpdateCustomerRequest;
 
 trait Billable
 {
+    /**
+     * Determine if the entity has a Iyzico customer ID.
+     *
+     * @return bool
+     */
+    public function hasIyzicoId()
+    {
+        return !is_null($this->iyzico_id);
+    }
+
+    /**
+     * Determine if the entity has a Iyzico customer ID and throw an exception if not.
+     *
+     * @return void
+     *
+     * @throws InvalidIyzicoCustomer
+     */
+    protected function assertCustomerExists()
+    {
+        if (!$this->iyzico_id) {
+            throw InvalidIyzicoCustomer::nonCustomer($this);
+        }
+    }
+
     /**
      * Create a Iyzico customer for the given model.
      *
@@ -51,9 +76,12 @@ trait Billable
      * Get the Iyzico customer for the model.
      *
      * @return SubscriptionCustomer
+     * @throws InvalidIyzicoCustomer
      */
     public function asIyzicoCustomer()
     {
+        $this->assertCustomerExists();
+
         $request = new SubscriptionRetrieveCustomerRequest();
         $request->setCustomerReferenceCode($this->iyzico_id);
 
@@ -63,7 +91,6 @@ trait Billable
     /**
      * Get the default Iyzico API options for the current Billable model.
      *
-     * @param  array  $options
      * @return \Iyzipay\Options
      */
     public function iyzicoOptions()
