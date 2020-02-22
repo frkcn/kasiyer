@@ -16,5 +16,6 @@
     </testsuites>
     <php>
         <env name="DB_CONNECTION" value="testing"/>
+        <env name="KASIYER_MODEL" value="Frkcn\Kasiyer\Tests\Fixtures\User"/>
     </php>
 </phpunit>
