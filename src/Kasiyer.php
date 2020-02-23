@@ -7,7 +7,7 @@ use Iyzipay\Options;
 class Kasiyer
 {
     /**
-     * The Cashier library version.
+     * The Kasiyer library version.
      *
      * @var string
      */

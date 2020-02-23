@@ -18,7 +18,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Cashier Base Url
+    | Kasiyer Base Url
     |--------------------------------------------------------------------------
     |
     | This is the base URL where Kasiyer sends requests to iyzico.
@@ -26,6 +26,17 @@ return [
     */
 
     'base_url' => env('KASIYER_URL', 'https://sandbox-api.iyzipay.com'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Kasiyer Callback Url
+    |--------------------------------------------------------------------------
+    |
+    | This is the callback URL where Iyzico sends subscription result.
+    |
+    */
+
+    'callback_url' => env('KASIYER_CALLBACK_URL'),
 
     /*
     |--------------------------------------------------------------------------

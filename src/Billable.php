@@ -105,6 +105,17 @@ trait Billable
     }
 
     /**
+     * Begin creating new subscription.
+     *
+     * @param $plan
+     * @return SubscriptionBuilder
+     */
+    public function newSubscription($plan)
+    {
+        return new SubscriptionBuilder($this, $plan);
+    }
+
+    /**
      * Get the default Iyzico API options for the current Billable model.
      *
      * @return \Iyzipay\Options

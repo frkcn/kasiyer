@@ -3,9 +3,6 @@
 
 namespace Frkcn\Kasiyer\Tests\Integration;
 
-
-use Iyzipay\Model\Customer;
-
 class CustomerTest extends IntegrationTestCase
 {
     /** @test */
@@ -31,7 +28,7 @@ class CustomerTest extends IntegrationTestCase
 
         $this->assertEquals('Yunus Emre', $customer->getName());
     }
-    
+
     /** @test */
     public function retrieve_customers_in_iyzico()
     {
@@ -42,27 +39,5 @@ class CustomerTest extends IntegrationTestCase
         $customer = $user->asIyzicoCustomer();
 
         $this->assertEquals($user->email, $customer->getEmail());
-    }
-
-    private function iyzicoCustomer($email): Customer
-    {
-        $customer = new Customer();
-        $customer->setName('Faruk');
-        $customer->setSurname('Can');
-        $customer->setGsmNumber('+905555555555');
-        $customer->setEmail($email);
-        $customer->setIdentityNumber('11111111111');
-        $customer->setShippingContactName('Faruk Can');
-        $customer->setShippingCity('Istanbul');
-        $customer->setShippingCountry('Turkey');
-        $customer->setShippingAddress('Beyoglu Huseyinaga Mahallesi');
-        $customer->setShippingZipCode('34435');
-        $customer->setBillingContactName('Faruk Can');
-        $customer->setBillingCity('Istanbul');
-        $customer->setBillingCountry('Turkey');
-        $customer->setBillingAddress('Beyoglu Huseyinaga Mahallesi');
-        $customer->setBillingZipCode('34435');
-
-        return $customer;
     }
 }

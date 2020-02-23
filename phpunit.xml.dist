@@ -17,5 +17,6 @@
     <php>
         <env name="DB_CONNECTION" value="testing"/>
         <env name="KASIYER_MODEL" value="Frkcn\Kasiyer\Tests\Fixtures\User"/>
+        <env name="KASIYER_URL" value="https://sandbox-api.iyzipay.com"/>
     </php>
 </phpunit>
