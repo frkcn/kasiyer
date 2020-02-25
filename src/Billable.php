@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Frkcn\Kasiyer;
-
 
 use Frkcn\Kasiyer\Exceptions\InvalidIyzicoCustomer;
 use Iyzipay\Model\Customer;
@@ -13,6 +11,16 @@ use Iyzipay\Request\Subscription\SubscriptionUpdateCustomerRequest;
 
 trait Billable
 {
+    /**
+     * Get all of the subscriptions for the Iyzico model.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class, $this->getForeignKey())->orderBy('created_at', 'desc');
+    }
+
     /**
      * Determine if the entity has a Iyzico customer ID.
      *

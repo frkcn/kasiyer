@@ -57,7 +57,6 @@ class SubscriptionsTest extends IntegrationTestCase
         $planRequest->setPricingPlanReferenceCode(static::$planId);
         SubscriptionPricingPlan::delete($planRequest, static::$options);
 
-
         $productRequest = new SubscriptionDeleteProductRequest();
         $productRequest->setProductReferenceCode(static::$productId);
         SubscriptionProduct::delete($productRequest, static::$options);
@@ -66,7 +65,7 @@ class SubscriptionsTest extends IntegrationTestCase
     /** @test */
     public function subscription_checkout_form_can_be_initialized()
     {
-        $user = $this->createCustomer('subscription');
+        $user = $this->createCustomer('subscriber');
         $iyzicoCustomer = $this->iyzicoCustomer($user->email);
         $user->createAsIyzicoCustomer($iyzicoCustomer);
 
