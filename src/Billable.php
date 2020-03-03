@@ -115,12 +115,49 @@ trait Billable
     /**
      * Begin creating new subscription.
      *
-     * @param $plan
      * @return SubscriptionBuilder
      */
-    public function newSubscription($plan)
+    public function newSubscription($subscription, $plan)
     {
-        return new SubscriptionBuilder($this, $plan);
+        return new SubscriptionBuilder($this, $subscription, $plan);
+    }
+
+    /**
+     * Determine if the Iyzico model has a given subscription.
+     *
+     * @param  string  $subscription
+     * @param  string|null  $plan
+     * @return bool
+     */
+    public function subscribed($subscription = 'default', $plan = null)
+    {
+        $subscription = $this->subscription($subscription);
+
+        if (is_null($subscription)) {
+            return false;
+        }
+
+        if (is_null($plan)) {
+            return $subscription->valid();
+        }
+
+        return $subscription->valid() &&
+            $subscription->iyzico_plan === $plan;
+    }
+
+    /**
+     * Get a subscription instance by name.
+     *
+     * @param  string  $subscription
+     * @return \Frkcn\Kasiyer\Subscription|null
+     */
+    public function subscription($subscription = 'default')
+    {
+        return $this->subscriptions->sortByDesc(function ($value) {
+            return $value->created_at->getTimestamp();
+        })->first(function ($value) use ($subscription) {
+            return $value->name === $subscription;
+        });
     }
 
     /**

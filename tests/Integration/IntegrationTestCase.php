@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model as Eloquent;
 use Frkcn\Kasiyer\Tests\Fixtures\User;
 use Frkcn\Kasiyer\Tests\TestCase;
 use Iyzipay\Model\Customer;
+use Iyzipay\Model\PaymentCard;
 use Iyzipay\Options;
 
 abstract class IntegrationTestCase extends TestCase
@@ -72,5 +73,18 @@ abstract class IntegrationTestCase extends TestCase
         $customer->setBillingZipCode('34435');
 
         return $customer;
+    }
+
+    protected function paymentCard(): PaymentCard
+    {
+        $paymentCard = new PaymentCard();
+        $paymentCard->setCardHolderName("John Doe");
+        $paymentCard->setCardNumber("5400010000000004"); // Non-Turkish Credit Card
+        $paymentCard->setExpireMonth("12");
+        $paymentCard->setExpireYear("2030");
+        $paymentCard->setCvc("123");
+        $paymentCard->setRegisterConsumerCard(true);
+
+        return $paymentCard;
     }
 }
