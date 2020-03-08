@@ -6,8 +6,10 @@ use Frkcn\Kasiyer\Exceptions\SubscriptionCancelFailure;
 use Illuminate\Database\Eloquent\Model;
 use Iyzipay\Model\Subscription\SubscriptionCancel;
 use Iyzipay\Model\Subscription\SubscriptionDetails;
+use Iyzipay\Model\Subscription\SubscriptionUpgrade;
 use Iyzipay\Request\Subscription\SubscriptionCancelRequest;
 use Iyzipay\Request\Subscription\SubscriptionDetailsRequest;
+use Iyzipay\Request\Subscription\SubscriptionUpgradeRequest;
 
 class Subscription extends Model
 {
@@ -145,6 +147,40 @@ class Subscription extends Model
     public function ended()
     {
         return $this->cancelled();
+    }
+
+    /**
+     * Swap the subscription to a new Iyzico plan.
+     *
+     * @param $plan
+     * @return $this
+     */
+    public function swap($plan)
+    {
+        $subscription = $this->asIyzicoSubscription();
+
+        $request = new SubscriptionUpgradeRequest();
+        $request->setSubscriptionReferenceCode($subscription->getReferenceCode());
+        $request->setNewPricingPlanReferenceCode($plan);
+        $request->setUpgradePeriod("NOW");
+
+        // If user on trial include trial to the new plan.
+        if ($this->onTrial()) {
+            $request->setUseTrial(true);
+        } else {
+            $request->setUseTrial(false);
+        }
+
+        $subscription = SubscriptionUpgrade::update($request, $this->owner->iyzicoOptions());
+
+        $this->fill([
+            'iyzico_id' => $subscription->getReferenceCode(),
+            'iyzico_plan' => $plan,
+            'ends_at' => null,
+        ])->save();
+
+        return $this;
+
     }
 
     /**

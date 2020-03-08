@@ -4,6 +4,8 @@
 namespace Frkcn\Kasiyer\Tests\Integration;
 
 
+use Frkcn\Kasiyer\Kasiyer;
+use Frkcn\Kasiyer\Subscription;
 use Illuminate\Support\Str;
 use Iyzipay\Model\Subscription\SubscriptionPricingPlan;
 use Iyzipay\Model\Subscription\SubscriptionProduct;
@@ -17,12 +19,17 @@ class SubscriptionsTest extends IntegrationTestCase
     /**
      * @var string
      */
+    protected static $productId;
+
+    /**
+     * @var string
+     */
     protected static $planId;
 
     /**
      * @var string
      */
-    protected static $productId;
+    protected static $otherPlanId;
 
     /**
      * @var string
@@ -35,23 +42,35 @@ class SubscriptionsTest extends IntegrationTestCase
 
         $productName = static::$iyzicoPrefix.'product-1'.Str::random(10);
         $planName = static::$iyzicoPrefix.'monthly-10-'.Str::random(10);
+        $otherPlanName = static::$iyzicoPrefix.'monthly-10-other-'.Str::random(10);
 
         $productRequest = new SubscriptionCreateProductRequest();
         $productRequest->setName($productName);
 
         static::$productId = SubscriptionProduct::create($productRequest, static::$options)->getReferenceCode();
 
+        // create plan
         $planRequest = new SubscriptionCreatePricingPlanRequest();
         $planRequest->setProductReferenceCode(static::$productId);
         $planRequest->setName($planName);
         $planRequest->setPrice('10.0');
         $planRequest->setCurrencyCode('USD');
         $planRequest->setPaymentInterval('MONTHLY');
-        $planRequest->setTrialPeriodDays(14);
-        $planRequest->setRecurrenceCount(5);
         $planRequest->setPlanPaymentType('RECURRING');
 
         static::$planId = SubscriptionPricingPlan::create($planRequest, static::$options)->getReferenceCode();
+
+        // create other plan
+        $planRequest = new SubscriptionCreatePricingPlanRequest();
+        $planRequest->setProductReferenceCode(static::$productId);
+        $planRequest->setName($otherPlanName);
+        $planRequest->setPrice('10.0');
+        $planRequest->setCurrencyCode('USD');
+        $planRequest->setPaymentInterval('MONTHLY');
+        $planRequest->setPlanPaymentType('RECURRING');
+
+        static::$otherPlanId = SubscriptionPricingPlan::create($planRequest, static::$options)->getReferenceCode();
+
         static::$subscriptionEmail = Str::random(10);
     }
 
@@ -111,14 +130,18 @@ class SubscriptionsTest extends IntegrationTestCase
         $this->assertTrue($user->subscribed('main', static::$planId));
         $this->assertTrue($user->subscription('main')->active());
 
+        // Swap plan.
         $subscription = $user->subscription('main');
+        $subscription->swap(self::$otherPlanId);
+
+        $this->assertEquals(self::$otherPlanId, $subscription->iyzico_plan);
+
+        // Cancel subscription.
         $subscription->cancel();
 
         $this->assertFalse($subscription->active());
         $this->assertTrue($subscription->cancelled());
         $this->assertFalse($subscription->recurring());
         $this->assertTrue($subscription->ended());
-
-
     }
 }
