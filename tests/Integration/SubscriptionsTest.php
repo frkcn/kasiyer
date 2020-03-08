@@ -4,9 +4,6 @@
 namespace Frkcn\Kasiyer\Tests\Integration;
 
 
-use Frkcn\Kasiyer\Kasiyer;
-use Frkcn\Kasiyer\SubscriptionBuilder;
-use Frkcn\Kasiyer\Tests\Fixtures\User;
 use Illuminate\Support\Str;
 use Iyzipay\Model\Subscription\SubscriptionPricingPlan;
 use Iyzipay\Model\Subscription\SubscriptionProduct;
@@ -26,6 +23,11 @@ class SubscriptionsTest extends IntegrationTestCase
      * @var string
      */
     protected static $productId;
+
+    /**
+     * @var string
+     */
+    protected static $subscriptionEmail;
 
     public static function setUpBeforeClass(): void
     {
@@ -50,6 +52,7 @@ class SubscriptionsTest extends IntegrationTestCase
         $planRequest->setPlanPaymentType('RECURRING');
 
         static::$planId = SubscriptionPricingPlan::create($planRequest, static::$options)->getReferenceCode();
+        static::$subscriptionEmail = Str::random(10);
     }
 
     public static function tearDownAfterClass(): void
@@ -68,7 +71,7 @@ class SubscriptionsTest extends IntegrationTestCase
     /** @test */
     public function subscription_checkout_form_can_be_initialized()
     {
-        $user = $this->createCustomer('subscriber');
+        $user = $this->createCustomer(static::$subscriptionEmail);
         $iyzicoCustomer = $this->iyzicoCustomer($user->email);
 
         $response = $user->newSubscription('main', static::$planId)
@@ -82,7 +85,7 @@ class SubscriptionsTest extends IntegrationTestCase
     {
         $this->markTestSkipped();
 
-        $user = $this->createCustomer('subscriber');
+        $user = $this->createCustomer(static::$subscriptionEmail);
 
         $response = $user->newSubscription('main', static::$planId)
             ->successful('817ff890-424c-4e15-b190-d178834750cc');
@@ -93,10 +96,11 @@ class SubscriptionsTest extends IntegrationTestCase
     /** @test */
     public function create_subscription_with_api()
     {
-        $user = $this->createCustomer('subscriber-new');
+        $user = $this->createCustomer(static::$subscriptionEmail);
         $iyzicoCustomer = $this->iyzicoCustomer($user->email);
 
-        $response = $user->newSubscription('main', static::$planId)
+        // Create subscription.
+        $user->newSubscription('main', static::$planId)
             ->setCustomer($iyzicoCustomer)
             ->create($this->paymentCard());
 
@@ -106,6 +110,15 @@ class SubscriptionsTest extends IntegrationTestCase
         $this->assertTrue($user->subscribed('main'));
         $this->assertTrue($user->subscribed('main', static::$planId));
         $this->assertTrue($user->subscription('main')->active());
-        $this->assertFalse($user->subscription('main')->onGracePeriod());
+
+        $subscription = $user->subscription('main');
+        $subscription->cancel();
+
+        $this->assertFalse($subscription->active());
+        $this->assertTrue($subscription->cancelled());
+        $this->assertFalse($subscription->recurring());
+        $this->assertTrue($subscription->ended());
+
+
     }
 }

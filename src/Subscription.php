@@ -2,7 +2,12 @@
 
 namespace Frkcn\Kasiyer;
 
+use Frkcn\Kasiyer\Exceptions\SubscriptionCancelFailure;
 use Illuminate\Database\Eloquent\Model;
+use Iyzipay\Model\Subscription\SubscriptionCancel;
+use Iyzipay\Model\Subscription\SubscriptionDetails;
+use Iyzipay\Request\Subscription\SubscriptionCancelRequest;
+use Iyzipay\Request\Subscription\SubscriptionDetailsRequest;
 
 class Subscription extends Model
 {
@@ -34,6 +39,11 @@ class Subscription extends Model
     const STATUS_PENDING = "PENDING";
 
     /**
+     * Iyzico subscription status canceled.
+     */
+    const STATUS_CANCELED = "CANCELED";
+
+    /**
      * Get the user that owns the subscription.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -56,13 +66,13 @@ class Subscription extends Model
     }
 
     /**
-     * Determine if the subscription is active, on trial, or within its grace period.
+     * Determine if the subscription is active, on trial.
      *
      * @return bool
      */
     public function valid()
     {
-        return $this->active() || $this->onTrial() || $this->onGracePeriod();
+        return $this->active() || $this->onTrial();
     }
 
     /**
@@ -72,18 +82,7 @@ class Subscription extends Model
      */
     public function active()
     {
-        return (is_null($this->ends_at) || $this->onGracePeriod()) &&
-            $this->iyzico_status !== self::STATUS_PENDING;
-    }
-
-    /**
-     * Determine if the subscription is within its grace period after cancellation.
-     *
-     * @return bool
-     */
-    public function onGracePeriod()
-    {
-        return $this->ends_at && $this->ends_at->isFuture();
+        return is_null($this->ends_at) && $this->iyzico_status !== self::STATUS_PENDING;
     }
 
     /**
@@ -94,5 +93,70 @@ class Subscription extends Model
     public function onTrial()
     {
         return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+    }
+
+    /**
+     * Cancel the subscription at the moment.
+     *
+     * @return $this
+     */
+    public function cancel()
+    {
+        $subscription = $this->asIyzicoSubscription();
+
+        $request = new SubscriptionCancelRequest();
+        $request->setSubscriptionReferenceCode($subscription->getReferenceCode());
+
+        $subscription = SubscriptionCancel::cancel($request, $this->owner->iyzicoOptions());
+
+        $this->iyzico_status = self::STATUS_CANCELED;
+        $this->ends_at = $subscription->getSystemTime();
+
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * Determine if the subscription is no longer active.
+     *
+     * @return bool
+     */
+    public function cancelled()
+    {
+        return !is_null($this->ends_at);
+    }
+
+    /**
+     * Determine if the subscription is recurring and not on trial.
+     *
+     * @return bool
+     */
+    public function recurring()
+    {
+        return !$this->onTrial() && ! $this->cancelled();
+    }
+
+    /**
+     * Determine if the subscription has ended.
+     *
+     * @return bool
+     */
+    public function ended()
+    {
+        return $this->cancelled();
+    }
+
+    /**
+     * Get the subscription as a Iyzico subscription details object.
+     *
+     * @return SubscriptionDetails
+     */
+    public function asIyzicoSubscription()
+    {
+        $request = new SubscriptionDetailsRequest();
+        $request->setSubscriptionReferenceCode($this->iyzico_id);
+
+        return SubscriptionDetails::retrieve($request, $this->owner->iyzicoOptions());
     }
 }
