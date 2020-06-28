@@ -2,7 +2,9 @@
 
 namespace Frkcn\Kasiyer;
 
+use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
 use Iyzipay\Options;
+use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
 
 class Kasiyer
 {
@@ -33,5 +35,19 @@ class Kasiyer
         $options->setBaseUrl(config("kasiyer.base_url"));
 
         return $options;
+    }
+
+    /**
+     * Get Iyzico subscription checkout form result.
+     *
+     * @param string $token
+     * @return RetrieveSubscriptionCheckoutForm
+     */
+    public static function getCheckoutFormResult(string $token)
+    {
+        $request = new RetrieveSubscriptionCreateCheckoutFormRequest();
+        $request->setCheckoutFormToken($token);
+
+        return RetrieveSubscriptionCheckoutForm::retrieve($request, Kasiyer::iyzicoOptions());
     }
 }

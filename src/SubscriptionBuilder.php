@@ -78,6 +78,7 @@ class SubscriptionBuilder
     public function init(Customer $customer)
     {
         $request = new SubscriptionCreateCheckoutFormRequest();
+        $request->setConversationId($this->owner->id);
         $request->setPricingPlanReferenceCode($this->plan);
         $request->setCallbackUrl(config('kasiyer.callback_url'));
 

@@ -2,6 +2,7 @@
 
 namespace Frkcn\Kasiyer;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class KasiyerServiceProvider extends ServiceProvider
@@ -13,6 +14,7 @@ class KasiyerServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->registerRoutes();
         $this->registerMigrations();
         $this->registerPublishing();
     }
@@ -37,6 +39,22 @@ class KasiyerServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__.'/../config/kasiyer.php', 'kasiyer'
         );
+    }
+
+    /**
+     * Boot the package routes.
+     *
+     * @return void
+     */
+    protected function registerRoutes()
+    {
+        Route::group([
+            'prefix' => config('kasiyer.path'),
+            'namespace' => 'Frkcn\Kasiyer\Http\Controllers',
+            'as' => 'kasiyer.',
+        ], function () {
+            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        });
     }
 
     /**
