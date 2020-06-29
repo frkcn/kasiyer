@@ -13,6 +13,10 @@ use Iyzipay\Request\Subscription\SubscriptionUpgradeRequest;
 
 class Subscription extends Model
 {
+    const STATUS_ACTIVE = "ACTIVE";
+    const STATUS_PENDING = "PENDING";
+    const STATUS_CANCELED = "CANCELED";
+
     /**
      * The attributes that are not mass assignable.
      *
@@ -31,19 +35,25 @@ class Subscription extends Model
     ];
 
     /**
-     * Iyzico subscription status active.
+     * Get the customer related to the subscription.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    const STATUS_ACTIVE = "ACTIVE";
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
 
     /**
-     * Iyzico subscription status pending.
+     * Determine if the subscription has a specific plan.
+     *
+     * @param $plan
+     * @return bool
      */
-    const STATUS_PENDING = "PENDING";
-
-    /**
-     * Iyzico subscription status canceled.
-     */
-    const STATUS_CANCELED = "CANCELED";
+    public function hasPlan($plan)
+    {
+        return $this->iyzico_plan == $plan;
+    }
 
     /**
      * Get the user that owns the subscription.
