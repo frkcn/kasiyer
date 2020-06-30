@@ -40,6 +40,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Kasiyer Path
+    |--------------------------------------------------------------------------
+    |
+    | This is the base URI path where Kasiyer's views, such as the webhook
+    | route, will be available. You're free to tweak this path based on
+    | the needs of your particular application or design preferences.
+    |
+    */
+
+    'path' => env('KASIYER_PATH', 'iyzico'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Kasiyer Model
     |--------------------------------------------------------------------------
     |

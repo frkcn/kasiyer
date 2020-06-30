@@ -4,8 +4,6 @@
 namespace Frkcn\Kasiyer\Tests\Integration;
 
 
-use Frkcn\Kasiyer\Kasiyer;
-use Frkcn\Kasiyer\Subscription;
 use Illuminate\Support\Str;
 use Iyzipay\Model\Subscription\SubscriptionPricingPlan;
 use Iyzipay\Model\Subscription\SubscriptionProduct;
