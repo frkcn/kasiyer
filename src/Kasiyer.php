@@ -3,8 +3,10 @@
 namespace Frkcn\Kasiyer;
 
 use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
+use Iyzipay\Model\Subscription\SubscriptionPricingPlan;
 use Iyzipay\Options;
 use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
+use Iyzipay\Request\Subscription\SubscriptionRetrievePricingPlanRequest;
 
 class Kasiyer
 {
@@ -48,6 +50,20 @@ class Kasiyer
         $request = new RetrieveSubscriptionCreateCheckoutFormRequest();
         $request->setCheckoutFormToken($token);
 
-        return RetrieveSubscriptionCheckoutForm::retrieve($request, Kasiyer::iyzicoOptions());
+        return RetrieveSubscriptionCheckoutForm::retrieve($request, self::iyzicoOptions());
+    }
+
+    /**
+     * Get Iyzico plan for given reference code.
+     *
+     * @param string $referenceCode
+     * @return SubscriptionPricingPlan
+     */
+    public static function plan(string $referenceCode)
+    {
+        $request = new SubscriptionRetrievePricingPlanRequest();
+        $request->setPricingPlanReferenceCode($referenceCode);
+
+        return SubscriptionPricingPlan::retrieve($request, self::iyzicoOptions());
     }
 }

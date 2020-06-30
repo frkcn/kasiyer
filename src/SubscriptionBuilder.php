@@ -4,6 +4,7 @@
 namespace Frkcn\Kasiyer;
 
 use Iyzipay\Model\Subscription\SubscriptionCreateCheckoutForm;
+use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
 use Iyzipay\Request\Subscription\SubscriptionCreateCheckoutFormRequest;
 
 class SubscriptionBuilder
@@ -73,9 +74,10 @@ class SubscriptionBuilder
         $request->setConversationId($this->billable->id);
         $request->setLocale(config('kasiyer.currency_locale'));
         $request->setPricingPlanReferenceCode($this->plan);
-        $request->setCallbackUrl(config('kasiyer.callback_url'));
+        $request->setCallbackUrl($this->returnTo);
         $request->setCustomer($this->billable->customer->asIyzicoCustomer());
 
-        return SubscriptionCreateCheckoutForm::create($request, $this->billable->iyzicoOptions());
+        return SubscriptionCreateCheckoutForm::create($request, $this->billable->iyzicoOptions())
+            ->getCheckoutFormContent();
     }
 }

@@ -2,8 +2,12 @@
 
 namespace Frkcn\Kasiyer\Concerns;
 
+use Frkcn\Kasiyer\Customer;
+use Frkcn\Kasiyer\Kasiyer;
 use Frkcn\Kasiyer\SubscriptionBuilder;
 use Illuminate\Database\Eloquent\Collection;
+use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
+use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
 
 trait ManagesSubscriptions
 {
@@ -89,5 +93,32 @@ trait ManagesSubscriptions
     public function onPlan($plan)
     {
         return $this->customer->onPlan($plan);
+    }
+
+    /**
+     * Handle checkout form result.
+     *
+     * @param string $token
+     * @return bool
+     */
+    public function handleSubscription(string $token)
+    {
+        $result = Kasiyer::getCheckoutFormResult($token);
+
+        if ($result->getStatus() == "success") {
+            $plan = Kasiyer::plan($result->getPricingPlanReferenceCode());
+
+            $this->customer->subscriptions()->create([
+                'name' => $plan->getName(),
+                'iyzico_id' => $result->getReferenceCode(),
+                'iyzico_plan' => $result->getPricingPlanReferenceCode(),
+                'iyzico_status' => $result->getSubscriptionStatus(),
+                'trial_ends_at' => $result->getTrialEndDate(),
+            ]);
+
+            return true;
+        }
+
+        return false;
     }
 }
