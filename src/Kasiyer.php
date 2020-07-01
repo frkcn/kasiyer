@@ -40,6 +40,13 @@ class Kasiyer
     }
 
     /**
+     * Indicates if Kasiyer will mark past due subscriptions as inactive.
+     *
+     * @var bool
+     */
+    public static $deactivatePastDue = true;
+
+    /**
      * Get Iyzico subscription checkout form result.
      *
      * @param string $token
@@ -65,5 +72,17 @@ class Kasiyer
         $request->setPricingPlanReferenceCode($referenceCode);
 
         return SubscriptionPricingPlan::retrieve($request, self::iyzicoOptions());
+    }
+
+    /**
+     * Configure Kasiyer to maintain past due subscriptions as active.
+     *
+     * @return static
+     */
+    public static function keepPastDueSubscriptionsActive()
+    {
+        static::$deactivatePastDue = false;
+
+        return new static;
     }
 }

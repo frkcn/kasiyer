@@ -2,7 +2,7 @@
 
 namespace Frkcn\Kasiyer;
 
-use Frkcn\Kasiyer\Exceptions\SubscriptionCancelFailure;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Iyzipay\Model\Subscription\SubscriptionCancel;
 use Iyzipay\Model\Subscription\SubscriptionDetails;
@@ -19,6 +19,7 @@ class Subscription extends Model
     const STATUS_UPGRADED = "UPGRADED";
     const STATUS_CANCELED = "CANCELED";
     const STATUS_EXPIRED = "EXPIRED";
+    const STATUS_PAST_DUE = 'PAST_DUE';
 
     /**
      * The attributes that are not mass assignable.
@@ -59,35 +60,55 @@ class Subscription extends Model
     }
 
     /**
-     * Get the user that owns the subscription.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user()
-    {
-        return $this->owner();
-    }
-
-    /**
-     * Get the model related to the subscription.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function owner()
-    {
-        $model = config('kasiyer.model');
-
-        return $this->belongsTo($model, (new $model)->getForeignKey());
-    }
-
-    /**
      * Determine if the subscription is active, on trial.
      *
      * @return bool
      */
     public function valid()
     {
-        return $this->active() || $this->onTrial();
+        return $this->active() || $this->onTrial() || $this->onGracePeriod();
+    }
+
+    /**
+     * Determine if the subscription is pending.
+     *
+     * @return bool
+     */
+    public function pending()
+    {
+        return $this->iyzico_status === self::STATUS_PENDING;
+    }
+
+    /**
+     * Filter query by pending.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopePending($query)
+    {
+        $query->where('iyzico_status', self::STATUS_PENDING);
+    }
+
+    /**
+     * Determine if the subscription is past due.
+     *
+     * @return bool
+     */
+    public function pastDue()
+    {
+        return $this->stripe_iyzico === self::STATUS_PAST_DUE;
+    }
+
+    /**
+     * Filter query by past due.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopePastDue($query)
+    {
+        $query->where('iyzico_status', self::STATUS_PAST_DUE);
     }
 
     /**
@@ -97,7 +118,34 @@ class Subscription extends Model
      */
     public function active()
     {
-        return is_null($this->ends_at) && $this->iyzico_status !== self::STATUS_PENDING;
+        return (is_null($this->ends_at) || $this->onGracePeriod()) &&
+            $this->iyzico_status !== self::STATUS_PENDING &&
+            $this->iyzico_status !== self::STATUS_EXPIRED &&
+            (! Kasiyer::$deactivatePastDue || $this->iyzico_status !== self::STATUS_PAST_DUE) &&
+            $this->iyzico_status !== self::STATUS_UNPAID;
+    }
+
+    /**
+     * Filter query by active
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeActive($query)
+    {
+        $query->where(function ($query) {
+            $query->whereNull('ends_at')
+                ->orWhere(function ($query) {
+                    $query->onGracePeriod();
+                });
+        })->where('iyzico_status', '!=', self::STATUS_PENDING)
+            ->where('iyzico_status', '!=', self::STATUS_EXPIRED)
+        ->where('iyzico_status', '!=', self::STATUS_UNPAID);
+
+        if (Kasiyer::$deactivatePastDue) {
+            $query->where('iyzico_status', '!=', self::STATUS_PAST_DUE);
+        }
+
     }
 
     /**
@@ -108,6 +156,28 @@ class Subscription extends Model
     public function onTrial()
     {
         return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+    }
+
+    /**
+     * Filter query by on trial.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeOnTrial($query)
+    {
+        $query->whereNotNull('trial_ends_at')->where('trial_ends_at', '>', Carbon::now());
+    }
+
+    /**
+     * Filter query by not on trial.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeNotOnTrial($query)
+    {
+        $query->whereNull('trial_ends_at')->orWhere('trial_ends_at', '<=', Carbon::now());
     }
 
     /**
@@ -133,6 +203,38 @@ class Subscription extends Model
     }
 
     /**
+     * Determine if the subscription is within its grace period after cancellation.
+     *
+     * @return bool
+     */
+    public function onGracePeriod()
+    {
+        return $this->ends_at && $this->ends_at->isFuture();
+    }
+
+    /**
+     * Filter query by on grace period.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeOnGracePeriod($query)
+    {
+        $query->whereNotNull('ends_at')->where('ends_at', '>', Carbon::now());
+    }
+
+    /**
+     * Filter query by not on grace period.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeNotOnGracePeriod($query)
+    {
+        $query->whereNull('ends_at')->orWhere('ends_at', '<=', Carbon::now());
+    }
+
+    /**
      * Determine if the subscription is no longer active.
      *
      * @return bool
@@ -140,6 +242,28 @@ class Subscription extends Model
     public function cancelled()
     {
         return !is_null($this->ends_at);
+    }
+
+    /**
+     * Filter query by cancelled.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeCancelled($query)
+    {
+        $query->whereNotNull('ends_at');
+    }
+
+    /**
+     * Filter query by not cancelled.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeNotCancelled($query)
+    {
+        $query->whereNull('ends_at');
     }
 
     /**
@@ -153,13 +277,35 @@ class Subscription extends Model
     }
 
     /**
+     * Filter query by recurring.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeRecurring($query)
+    {
+        $query->notOnTrial()->notCancelled();
+    }
+
+    /**
      * Determine if the subscription has ended.
      *
      * @return bool
      */
     public function ended()
     {
-        return $this->cancelled();
+        return $this->cancelled() && ! $this->onGracePeriod();
+    }
+
+    /**
+     * Filter query by ended.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return void
+     */
+    public function scopeEnded($query)
+    {
+        $query->cancelled()->notOnGracePeriod();
     }
 
     /**

@@ -23,6 +23,7 @@ class CreateSubscriptionsTable extends Migration
             $table->string('iyzico_status');
             $table->string('iyzico_plan');
             $table->timestamp('trial_ends_at')->nullable();
+            $table->timestamp('paused_from')->nullable();
             $table->timestamp('ends_at')->nullable();
             $table->timestamps();
 
