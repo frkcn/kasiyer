@@ -34,7 +34,7 @@ trait ManagesSubscriptions
             return new Collection;
         }
 
-        return $this->customer->subscriptions;
+        return $this->customer->subscriptions();
     }
 
     /**
@@ -69,8 +69,8 @@ trait ManagesSubscriptions
     /**
      * Determine if the Billable model is actively subscribed to one of the given plans.
      *
-     * @param  int  $plan
-     * @param  string  $name
+     * @param string|array $plan
+     * @param string $name
      * @return bool
      */
     public function subscribedToPlan($plan, $name = 'default')
