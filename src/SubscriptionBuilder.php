@@ -55,6 +55,7 @@ class SubscriptionBuilder
      * The return url which will be triggered upon starting the subscription.
      *
      * @param $returnTo
+     * @return SubscriptionBuilder
      */
     public function returnTo(string $returnTo)
     {

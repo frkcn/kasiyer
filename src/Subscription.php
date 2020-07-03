@@ -5,9 +5,11 @@ namespace Frkcn\Kasiyer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Iyzipay\Model\Subscription\SubscriptionCancel;
+use Iyzipay\Model\Subscription\SubscriptionCardUpdate;
 use Iyzipay\Model\Subscription\SubscriptionDetails;
 use Iyzipay\Model\Subscription\SubscriptionUpgrade;
 use Iyzipay\Request\Subscription\SubscriptionCancelRequest;
+use Iyzipay\Request\Subscription\SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest;
 use Iyzipay\Request\Subscription\SubscriptionDetailsRequest;
 use Iyzipay\Request\Subscription\SubscriptionUpgradeRequest;
 
@@ -39,6 +41,14 @@ class Subscription extends Model
     ];
 
     /**
+     * The return url which will be triggered upon starting the card update.
+     *
+     * @var string|null
+     */
+    protected $returnTo;
+
+
+    /**
      * Get the customer related to the subscription.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -46,6 +56,19 @@ class Subscription extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * The return url which will be triggered upon starting the card update.
+     *
+     * @param string $returnTo
+     * @return Subscription
+     */
+    public function returnTo(string $returnTo)
+    {
+        $this->returnTo = $returnTo;
+
+        return $this;
     }
 
     /**
@@ -306,6 +329,23 @@ class Subscription extends Model
     public function scopeEnded($query)
     {
         $query->cancelled()->notOnGracePeriod();
+    }
+
+    /**
+     * Get the Iyzico card update form.
+     *
+     * @return mixed
+     */
+    public function cardUpdate()
+    {
+        $request = new SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest();
+        $request->setLocale(config('kasiyer.currency_locale'));
+        $request->setConversationId($this->customer_id);
+        $request->setSubscriptionReferenceCode($this->iyzico_id);
+        $request->setCallbackUrl($this->returnTo);
+
+        return SubscriptionCardUpdate::updateWithSubscriptionReferenceCode($request, Kasiyer::iyzicoOptions())
+            ->getCheckoutFormContent();
     }
 
     /**
