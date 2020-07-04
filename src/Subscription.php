@@ -47,6 +47,13 @@ class Subscription extends Model
      */
     protected $returnTo;
 
+    /**
+     * Indicates that the trial should end immediately..
+     *
+     * @var bool
+     */
+    protected $skipTrial = false;
+
 
     /**
      * Get the customer related to the subscription.
@@ -67,6 +74,18 @@ class Subscription extends Model
     public function returnTo(string $returnTo)
     {
         $this->returnTo = $returnTo;
+
+        return $this;
+    }
+
+    /**
+     * Force the trial to end immediately.
+     *
+     * @return $this
+     */
+    public function skipTrial()
+    {
+        $this->skipTrial = true;
 
         return $this;
     }
@@ -352,46 +371,29 @@ class Subscription extends Model
      * Swap the subscription to a new Iyzico plan.
      *
      * @param $plan
-     * @return $this
+     * @return bool|Subscription
      */
     public function swap($plan)
     {
-        $subscription = $this->asIyzicoSubscription();
-
         $request = new SubscriptionUpgradeRequest();
-        $request->setSubscriptionReferenceCode($subscription->getReferenceCode());
+        $request->setLocale(config('kasiyer.currency_locale'));
+        $request->setSubscriptionReferenceCode($this->iyzico_id);
         $request->setNewPricingPlanReferenceCode($plan);
         $request->setUpgradePeriod("NOW");
+        $request->setUseTrial($this->skipTrial);
+        $request->setResetRecurrenceCount(true);
 
-        // If user on trial include trial to the new plan.
-        if ($this->onTrial()) {
-            $request->setUseTrial(true);
-        } else {
-            $request->setUseTrial(false);
+        $subscription = SubscriptionUpgrade::update($request, Kasiyer::iyzicoOptions());
+
+        if ( $subscription->getStatus() == 'success') {
+            $this->forceFill([
+                'iyzico_id' => $subscription->getReferenceCode(),
+                'iyzico_plan' => $subscription->getPricingPlanReferenceCode(),
+            ])->save();
+
+            return $this;
         }
 
-        $subscription = SubscriptionUpgrade::update($request, $this->owner->iyzicoOptions());
-
-        $this->fill([
-            'iyzico_id' => $subscription->getReferenceCode(),
-            'iyzico_plan' => $plan,
-            'ends_at' => null,
-        ])->save();
-
-        return $this;
-
-    }
-
-    /**
-     * Get the subscription as a Iyzico subscription details object.
-     *
-     * @return SubscriptionDetails
-     */
-    public function asIyzicoSubscription()
-    {
-        $request = new SubscriptionDetailsRequest();
-        $request->setSubscriptionReferenceCode($this->iyzico_id);
-
-        return SubscriptionDetails::retrieve($request, $this->owner->iyzicoOptions());
+        return false;
     }
 }
