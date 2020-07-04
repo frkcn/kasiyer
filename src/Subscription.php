@@ -223,28 +223,6 @@ class Subscription extends Model
     }
 
     /**
-     * Cancel the subscription at the moment.
-     *
-     * @return $this
-     */
-    public function cancel()
-    {
-        $subscription = $this->asIyzicoSubscription();
-
-        $request = new SubscriptionCancelRequest();
-        $request->setSubscriptionReferenceCode($subscription->getReferenceCode());
-
-        $subscription = SubscriptionCancel::cancel($request, $this->owner->iyzicoOptions());
-
-        $this->iyzico_status = self::STATUS_CANCELED;
-        $this->ends_at = $subscription->getSystemTime();
-
-        $this->save();
-
-        return $this;
-    }
-
-    /**
      * Determine if the subscription is within its grace period after cancellation.
      *
      * @return bool
@@ -395,5 +373,58 @@ class Subscription extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Cancel the subscription at the moment.
+     *
+     * @return $this
+     */
+    public function cancel()
+    {
+        $nextPayment = $this->nextPayment();
+
+        $request = new SubscriptionCancelRequest();
+        $request->setSubscriptionReferenceCode($this->iyzico_id);
+
+        SubscriptionCancel::cancel($request, Kasiyer::iyzicoOptions());
+
+        $this->iyzico_status = self::STATUS_CANCELED;
+
+        if ($this->onTrial()) {
+            $this->ends_at = $this->trial_ends_at;
+        } else {
+            $this->ends_at = $nextPayment->date();
+        }
+
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * Get the next order for the subscription.
+     *
+     * @return Payment
+     */
+    public function nextPayment()
+    {
+        $subscription = $this->asIyzicoSubscription();
+        $nextOrder = $subscription->getOrders(){0};
+
+        return new Payment($nextOrder);
+    }
+
+    /**
+     * Get the subscription as a Iyzico subscription object.
+     *
+     * @return SubscriptionDetails
+     */
+    public function asIyzicoSubscription()
+    {
+        $request = new SubscriptionDetailsRequest();
+        $request->setSubscriptionReferenceCode($this->iyzico_id);
+
+        return SubscriptionDetails::retrieve($request, Kasiyer::iyzicoOptions());
     }
 }
