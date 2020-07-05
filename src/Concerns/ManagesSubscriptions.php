@@ -49,6 +49,42 @@ trait ManagesSubscriptions
     }
 
     /**
+     * Determine if the Billable model is on trial.
+     *
+     * @param string $name
+     * @param null $plan
+     * @return bool
+     */
+    public function onTrial($name = 'default', $plan = null)
+    {
+        if (func_num_args() === 0 && $this->onGenericTrial()) {
+            return true;
+        }
+
+        $subscription = $this->subscription($name);
+
+        if (! $subscription || ! $subscription->onTrial()) {
+            return false;
+        }
+
+        return $plan ? $subscription->hasPlan($plan) : true;
+    }
+
+    /**
+     * Determine if the Billable model is on a "generic" trial at the model level.
+     *
+     * @return bool
+     */
+    public function onGenericTrial()
+    {
+        if (is_null($this->customer)) {
+            return false;
+        }
+
+        return $this->customer->onGenericTrial();
+    }
+
+    /**
      * Determine if the Billable model has a given subscription.
      *
      * @param string $name
@@ -87,11 +123,15 @@ trait ManagesSubscriptions
     /**
      * Determine if the entity has a valid subscription on the given plan.
      *
-     * @param  int  $plan
+     * @param  string  $plan
      * @return bool
      */
     public function onPlan($plan)
     {
+        if (is_null($this->customer)) {
+            return false;
+        }
+
         return $this->customer->onPlan($plan);
     }
 

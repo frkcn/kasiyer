@@ -9,4 +9,6 @@ use Frkcn\Kasiyer\Billable;
 class User extends Model
 {
     use Billable, Notifiable;
+
+    protected $guarded = [];
 }

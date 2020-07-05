@@ -410,7 +410,7 @@ class Subscription extends Model
     public function nextPayment()
     {
         $subscription = $this->asIyzicoSubscription();
-        $nextOrder = $subscription->getOrders(){0};
+        $nextOrder = $subscription->getOrders()[0];
 
         return new Payment($nextOrder);
     }
