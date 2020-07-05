@@ -55,6 +55,32 @@ class Customer extends Model
     }
 
     /**
+     * Determine if the entity has a valid subscription on the given plan.
+     *
+     * @param  string  $plan
+     * @return bool
+     */
+    public function onPlan($plan)
+    {
+        return ! is_null($this->subscriptions()
+            ->where('iyzico_plan', $plan)
+            ->get()
+            ->first(function (Subscription $subscription) use ($plan) {
+                return $subscription->valid();
+            }));
+    }
+
+    /**
+     * Determine if the Iyzico model is on a "generic" trial at the model level.
+     *
+     * @return bool
+     */
+    public function onGenericTrial()
+    {
+        return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+    }
+
+    /**
      * Get customer as iyzico customer.
      *
      * @return IyzicoCustomer

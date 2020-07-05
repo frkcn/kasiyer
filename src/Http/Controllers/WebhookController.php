@@ -5,6 +5,7 @@ namespace Frkcn\Kasiyer\Http\Controllers;
 use Frkcn\Kasiyer\Kasiyer;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,9 +16,12 @@ class WebhookController extends Controller
      * Handle an Iyzico webhook call.
      *
      * @param Request $request
+     * @return Response
      */
     public function __invoke(Request $request)
     {
+
+        Log::info('webhook', $request->all());
         $payload = Kasiyer::getCheckoutFormResult($request->token);
 
         $method = 'handle'.Str::studly($payload->getStatus());
