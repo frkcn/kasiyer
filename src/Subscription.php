@@ -56,13 +56,13 @@ class Subscription extends Model
 
 
     /**
-     * Get the customer related to the subscription.
+     * Get the billable model related to the subscription.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
      */
-    public function customer()
+    public function billable()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->morphTo();
     }
 
     /**
@@ -337,7 +337,7 @@ class Subscription extends Model
     {
         $request = new SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest();
         $request->setLocale(config('kasiyer.currency_locale'));
-        $request->setConversationId($this->customer_id);
+        $request->setConversationId($this->billable_id);
         $request->setSubscriptionReferenceCode($this->iyzico_id);
         $request->setCallbackUrl($this->returnTo);
 

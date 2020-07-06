@@ -15,19 +15,19 @@ class CreateSubscriptionsTable extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('customer_id');
-            $table->string('card_brand')->nullable();
-            $table->string('card_last_four', 4)->nullable();
+            $table->unsignedBigInteger('billable_id');
+            $table->string('billable_type');
             $table->string('name');
-            $table->string('iyzico_id');
+            $table->string('iyzico_id')->unique();
             $table->string('iyzico_status');
             $table->string('iyzico_plan');
+            $table->string('card_brand')->nullable();
+            $table->string('card_last_four', 4)->nullable();
             $table->timestamp('trial_ends_at')->nullable();
-            $table->timestamp('paused_from')->nullable();
             $table->timestamp('ends_at')->nullable();
             $table->timestamps();
 
-            $table->index(['customer_id', 'iyzico_id']);
+            $table->index(['billable_id', 'billable_type']);
         });
     }
 
