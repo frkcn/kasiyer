@@ -143,7 +143,12 @@ trait ManagesSubscriptions
         if ($result->getStatus() == "success") {
             $plan = Kasiyer::plan($result->getPricingPlanReferenceCode());
 
-            $this->customer->subscriptions()->create([
+            $this->customer->iyzico_id = $result->getCustomerReferenceCode();
+            $this->customer->trial_ends_at = $result->getTrialEndDate();
+
+            $this->customer->save();
+
+            $this->subscriptions()->create([
                 'name' => $plan->getName(),
                 'iyzico_id' => $result->getReferenceCode(),
                 'iyzico_plan' => $result->getPricingPlanReferenceCode(),
