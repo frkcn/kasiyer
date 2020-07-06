@@ -2,7 +2,10 @@
 
 namespace Frkcn\Kasiyer\Http\Controllers;
 
+use Frkcn\Kasiyer\Events\WebhookHandled;
+use Frkcn\Kasiyer\Events\WebhookReceived;
 use Frkcn\Kasiyer\Kasiyer;
+use Frkcn\Kasiyer\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
@@ -20,14 +23,16 @@ class WebhookController extends Controller
      */
     public function __invoke(Request $request)
     {
+        $payload = $request->all();
 
-        Log::info('webhook', $request->all());
-        $payload = Kasiyer::getCheckoutFormResult($request->token);
+        $method = 'handle' . Str::studly(str_replace('.', '', $payload['iyziEventType']));
 
-        $method = 'handle'.Str::studly($payload->getStatus());
+        WebhookReceived::dispatch($payload);
 
         if (method_exists($this, $method)) {
             $this->{$method}($payload);
+
+            WebhookHandled::dispatch($payload);
 
             return new Response('Webhook Handled');
         }
@@ -36,17 +41,30 @@ class WebhookController extends Controller
     }
 
     /**
-     * Handle subscription success.
+     * Handle subscription order success.
      *
-     * @param RetrieveSubscriptionCheckoutForm $payload
+     * @param array $payload
      */
-    protected function handleSuccess(RetrieveSubscriptionCheckoutForm $payload)
+    protected function handleSubscriptionOrderSuccess(array $payload)
     {
-        //
+        if ($subscription = Subscription::firstWhere('iyzico_id', $payload['subscriptionReferenceCode'])) {
+            $subscription->iyzico_status = Subscription::STATUS_ACTIVE;
+
+            $subscription->save();
+        }
     }
 
-    protected function handleFailure()
+    /**
+     * Handle subscription order failed.
+     *
+     * @param array $payload
+     */
+    protected function handleSubscriptionOrderFailed(array $payload)
     {
-        //
+        if ($subscription = Subscription::firstWhere('iyzico_id', $payload['subscriptionReferenceCode'])) {
+            $subscription->iyzico_status = Subscription::STATUS_PAST_DUE;
+
+            $subscription->save();
+        }
     }
 }
