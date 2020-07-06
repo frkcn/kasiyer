@@ -9,7 +9,7 @@ class SubscriptionsTest extends FeatureTestCase
     {
         $billable = $this->createBillable();
 
-        $subscription = $billable->customer->subscriptions()->create([
+        $subscription = $billable->subscriptions()->create([
             'name' => 'basic',
             'iyzico_id' => '72d67bd0-dcfe-4ca5-8a3d-bd544207fa23',
             'iyzico_plan' => '438bbdc4-ce41-4dfe-be5f-884fcc7f8f55',

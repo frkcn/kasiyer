@@ -34,43 +34,6 @@ class Customer extends Model
     }
 
     /**
-     * Get all of the subscriptions for the Customer model.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function subscriptions()
-    {
-        return $this->hasMany(Subscription::class)->orderByDesc('created_at');
-    }
-
-    /**
-     * Get a subscription instance by name.
-     *
-     * @param  string  $name
-     * @return Model|\Illuminate\Database\Eloquent\Relations\HasMany|object
-     */
-    public function subscription($name = 'default')
-    {
-        return $this->subscriptions()->where('name', $name)->first();
-    }
-
-    /**
-     * Determine if the entity has a valid subscription on the given plan.
-     *
-     * @param  string  $plan
-     * @return bool
-     */
-    public function onPlan($plan)
-    {
-        return ! is_null($this->subscriptions()
-            ->where('iyzico_plan', $plan)
-            ->get()
-            ->first(function (Subscription $subscription) use ($plan) {
-                return $subscription->valid();
-            }));
-    }
-
-    /**
      * Determine if the Iyzico model is on a "generic" trial at the model level.
      *
      * @return bool

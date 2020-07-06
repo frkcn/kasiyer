@@ -29,7 +29,7 @@ class CustomerTest extends FeatureTestCase
         $this->assertFalse($user->onPlan('438bbdc4-ce41-4dfe-be5f-884fcc7f8f55'));
         $this->assertFalse($user->subscribed());
         $this->assertFalse($user->subscribedToPlan('438bbdc4-ce41-4dfe-be5f-884fcc7f8f55'));
-        $this->assertEmpty($user->subscriptions());
+        $this->assertEmpty($user->subscriptions);
         $this->assertNull($user->subscription());
     }
 
@@ -48,7 +48,7 @@ class CustomerTest extends FeatureTestCase
     {
         $billable = $this->createBillable('faruk');
 
-        $subscription = $billable->customer->subscriptions()->create([
+        $subscription = $billable->subscriptions()->create([
             'name' => 'basic',
             'iyzico_id' => '72d67bd0-dcfe-4ca5-8a3d-bd544207fa23',
             'iyzico_plan' => '438bbdc4-ce41-4dfe-be5f-884fcc7f8f55',
@@ -81,7 +81,7 @@ class CustomerTest extends FeatureTestCase
     {
         $billable = $this->createBillable('faruk');
 
-        $subscription = $billable->customer->subscriptions()->create([
+        $subscription = $billable->subscriptions()->create([
             'name' => 'basic',
             'iyzico_id' => '72d67bd0-dcfe-4ca5-8a3d-bd544207fa23',
             'iyzico_plan' => '438bbdc4-ce41-4dfe-be5f-884fcc7f8f55',
@@ -103,7 +103,7 @@ class CustomerTest extends FeatureTestCase
     {
         $billable = $this->createBillable('faruk');
 
-        $subscription = $billable->customer->subscriptions()->create([
+        $subscription = $billable->subscriptions()->create([
             'name' => 'basic',
             'iyzico_id' => '72d67bd0-dcfe-4ca5-8a3d-bd544207fa23',
             'iyzico_plan' => '438bbdc4-ce41-4dfe-be5f-884fcc7f8f55',

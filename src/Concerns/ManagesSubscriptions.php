@@ -2,12 +2,10 @@
 
 namespace Frkcn\Kasiyer\Concerns;
 
-use Frkcn\Kasiyer\Customer;
 use Frkcn\Kasiyer\Kasiyer;
+use Frkcn\Kasiyer\Subscription;
 use Frkcn\Kasiyer\SubscriptionBuilder;
 use Illuminate\Database\Eloquent\Collection;
-use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
-use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
 
 trait ManagesSubscriptions
 {
@@ -26,15 +24,11 @@ trait ManagesSubscriptions
     /**
      * Get all of the subscriptions for the Iyzico model.
      *
-     * @return \Frkcn\Kasiyer\Subscription[]|\Illuminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
      */
     public function subscriptions()
     {
-        if (is_null($this->customer)) {
-            return new Collection;
-        }
-
-        return $this->customer->subscriptions();
+        return $this->morphMany(Subscription::class, 'billable')->orderByDesc('created_at');
     }
 
     /**
@@ -45,7 +39,7 @@ trait ManagesSubscriptions
      */
     public function subscription($name = 'default')
     {
-        return optional($this->customer)->subscription($name);
+        return $this->subscriptions()->where('name', $name)->first();
     }
 
     /**
@@ -128,11 +122,12 @@ trait ManagesSubscriptions
      */
     public function onPlan($plan)
     {
-        if (is_null($this->customer)) {
-            return false;
-        }
-
-        return $this->customer->onPlan($plan);
+        return !is_null($this->subscriptions()
+            ->where('iyzico_plan', $plan)
+            ->get()
+            ->first(function (Subscription $subscription) use ($plan) {
+                return $subscription->valid();
+            }));
     }
 
     /**
