@@ -12,6 +12,7 @@ use Iyzipay\Request\Subscription\SubscriptionCancelRequest;
 use Iyzipay\Request\Subscription\SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest;
 use Iyzipay\Request\Subscription\SubscriptionDetailsRequest;
 use Iyzipay\Request\Subscription\SubscriptionUpgradeRequest;
+use LogicException;
 
 class Subscription extends Model
 {
@@ -353,6 +354,10 @@ class Subscription extends Model
      */
     public function swap($plan)
     {
+        if ($this->pastDue()) {
+            throw new LogicException('Cannot swap plans for past due subscriptions.');
+        }
+
         $request = new SubscriptionUpgradeRequest();
         $request->setLocale(config('kasiyer.currency_locale'));
         $request->setSubscriptionReferenceCode($this->iyzico_id);

@@ -144,7 +144,6 @@ trait ManagesSubscriptions
             $plan = Kasiyer::plan($result->getPricingPlanReferenceCode());
 
             $this->customer->iyzico_id = $result->getCustomerReferenceCode();
-            $this->customer->trial_ends_at = $result->getTrialEndDate();
 
             $this->customer->save();
 
