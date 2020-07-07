@@ -473,6 +473,18 @@ class Subscription extends Model
     }
 
     /**
+     * Get the billable model's transactions.
+     */
+    public function transactions()
+    {
+        $result = $this->iyzicoInfo()->getOrders();
+
+        return collect($result)->map(function ($transaction) {
+            return new Transaction($this->billable->customer, $transaction);
+        });
+    }
+
+    /**
      * Get info about last subscription payment.
      *
      * @return \Iyzipay\Model\Payment
