@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Iyzipay\Model\Subscription\SubscriptionCancel;
 use Iyzipay\Model\Subscription\SubscriptionCardUpdate;
 use Iyzipay\Model\Subscription\SubscriptionDetails;
+use Iyzipay\Model\Subscription\SubscriptionRetry;
 use Iyzipay\Model\Subscription\SubscriptionUpgrade;
 use Iyzipay\Request\RetrievePaymentRequest;
 use Iyzipay\Request\Subscription\SubscriptionCancelRequest;
 use Iyzipay\Request\Subscription\SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest;
 use Iyzipay\Request\Subscription\SubscriptionDetailsRequest;
+use Iyzipay\Request\Subscription\SubscriptionRetryRequest;
 use Iyzipay\Request\Subscription\SubscriptionUpgradeRequest;
 use LogicException;
 
@@ -412,6 +414,32 @@ class Subscription extends Model
         $this->save();
 
         return $this;
+    }
+
+    /**
+     * Retry subscription for failed payment.
+     *
+     * @return bool
+     */
+    public function retry()
+    {
+        if (!$this->pastDue()) {
+            throw new LogicException('Cannot retry subscription for active subscriptions.');
+        }
+
+       $request = new SubscriptionRetryRequest();
+       $request->setReferenceCode($this->iyzico_id);
+
+       $result = SubscriptionRetry::update($request, Kasiyer::iyzicoOptions());
+
+       if ($result === 'success') {
+           $this->iyzico_status = self::STATUS_ACTIVE;
+           $this->save();
+
+           return true;
+       }
+
+       return false;
     }
 
     /**
