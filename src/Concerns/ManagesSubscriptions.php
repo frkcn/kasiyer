@@ -138,7 +138,8 @@ trait ManagesSubscriptions
      */
     public function handleSubscription(string $token)
     {
-        $result = Kasiyer::getCheckoutFormResult($token);
+        $result = Kasiyer::getSubscriptionCheckoutFormResult($token);
+        $checkoutFormResult = Kasiyer::getCheckoutFormResult($token);
 
         if ($result->getStatus() == "success") {
             $plan = Kasiyer::plan($result->getPricingPlanReferenceCode());
@@ -152,6 +153,8 @@ trait ManagesSubscriptions
                 'iyzico_id' => $result->getReferenceCode(),
                 'iyzico_plan' => $result->getPricingPlanReferenceCode(),
                 'iyzico_status' => $result->getSubscriptionStatus(),
+                'card_brand' => $checkoutFormResult->getCardAssociation(),
+                'card_last_four' => $checkoutFormResult->getLastFourDigits(),
                 'trial_ends_at' => $result->getTrialEndDate(),
             ]);
 

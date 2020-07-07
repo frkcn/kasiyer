@@ -8,6 +8,7 @@ use Iyzipay\Model\Subscription\SubscriptionCancel;
 use Iyzipay\Model\Subscription\SubscriptionCardUpdate;
 use Iyzipay\Model\Subscription\SubscriptionDetails;
 use Iyzipay\Model\Subscription\SubscriptionUpgrade;
+use Iyzipay\Request\RetrievePaymentRequest;
 use Iyzipay\Request\Subscription\SubscriptionCancelRequest;
 use Iyzipay\Request\Subscription\SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest;
 use Iyzipay\Request\Subscription\SubscriptionDetailsRequest;
@@ -40,6 +41,12 @@ class Subscription extends Model
         'trial_ends_at', 'ends_at',
         'created_at', 'updated_at',
     ];
+    /**
+     * The Iyzico info for the subscription.
+     *
+     * @var
+     */
+    protected $iyzicoInfo;
 
     /**
      * The return url which will be triggered upon starting the card update.
@@ -414,22 +421,61 @@ class Subscription extends Model
      */
     public function nextPayment()
     {
-        $subscription = $this->asIyzicoSubscription();
+        $subscription = $this->iyzicoInfo();
         $nextOrder = $subscription->getOrders()[0];
 
         return new Payment($nextOrder);
     }
 
     /**
-     * Get the subscription as a Iyzico subscription object.
+     * Get info from Iyzico about subscription.
      *
      * @return SubscriptionDetails
      */
-    public function asIyzicoSubscription()
+    public function iyzicoInfo()
     {
+        if ($this->iyzicoInfo) {
+            return $this->iyzicoInfo;
+        }
+
         $request = new SubscriptionDetailsRequest();
         $request->setSubscriptionReferenceCode($this->iyzico_id);
 
-        return SubscriptionDetails::retrieve($request, Kasiyer::iyzicoOptions());
+        return $this->iyzicoInfo = SubscriptionDetails::retrieve($request, Kasiyer::iyzicoOptions());
+    }
+
+    /**
+     * Get info about last subscription payment.
+     *
+     * @return \Iyzipay\Model\Payment
+     */
+    public function lastPayment()
+    {
+       $paymentId = $this->iyzicoInfo()->getOrders()[1]->paymentAttempts[0]->paymentId;
+
+       $request = new RetrievePaymentRequest();
+       $request->setPaymentId($paymentId);
+
+       return \Iyzipay\Model\Payment::retrieve($request, Kasiyer::iyzicoOptions());
+    }
+
+    /**
+     * Get the card brand from the subscription.
+     *
+     * @return string
+     */
+    public function cardBrand()
+    {
+        return (string) $this->lastPayment()->getCardAssociation();
+    }
+
+    /**
+     * Get the last four digits from the subscription.
+     *
+     * @return string
+     */
+    public function cardLastFour()
+    {
+        return (string) $this->lastPayment()->getLastFourDigits();
     }
 }

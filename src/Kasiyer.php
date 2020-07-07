@@ -2,9 +2,12 @@
 
 namespace Frkcn\Kasiyer;
 
+use Iyzipay\Model\CheckoutForm;
+use Iyzipay\Model\Locale;
 use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
 use Iyzipay\Model\Subscription\SubscriptionPricingPlan;
 use Iyzipay\Options;
+use Iyzipay\Request\RetrieveCheckoutFormRequest;
 use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
 use Iyzipay\Request\Subscription\SubscriptionRetrievePricingPlanRequest;
 
@@ -52,12 +55,26 @@ class Kasiyer
      * @param string $token
      * @return RetrieveSubscriptionCheckoutForm
      */
-    public static function getCheckoutFormResult(string $token)
+    public static function getSubscriptionCheckoutFormResult(string $token)
     {
         $request = new RetrieveSubscriptionCreateCheckoutFormRequest();
         $request->setCheckoutFormToken($token);
 
         return RetrieveSubscriptionCheckoutForm::retrieve($request, self::iyzicoOptions());
+    }
+
+    /**
+     * Get Iyzico generic checkout form result.
+     *
+     * @param string $token
+     * @return CheckoutForm
+     */
+    public static function getCheckoutFormResult(string $token)
+    {
+        $request = new RetrieveCheckoutFormRequest();
+        $request->setToken($token);
+
+        return CheckoutForm::retrieve($request, self::iyzicoOptions());
     }
 
     /**
