@@ -66,6 +66,16 @@ class Transaction implements Arrayable, Jsonable
     }
 
     /**
+     * Get the reference code from transaction.
+     *
+     * @return string
+     */
+    public function id()
+    {
+        return $this->transaction->referenceCode;
+    }
+
+    /**
      * Get the related customer.
      *
      * @return Customer
