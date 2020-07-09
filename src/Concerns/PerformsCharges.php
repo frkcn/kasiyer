@@ -9,7 +9,10 @@ use Iyzipay\Model\BasketItemType;
 use Iyzipay\Model\Buyer;
 use Iyzipay\Model\CheckoutFormInitialize;
 use Iyzipay\Model\PaymentGroup;
+use Iyzipay\Model\Refund;
+use Iyzipay\Model\RefundReason;
 use Iyzipay\Request\CreateCheckoutFormInitializeRequest;
+use Iyzipay\Request\CreateRefundRequest;
 
 trait PerformsCharges
 {
@@ -44,7 +47,7 @@ trait PerformsCharges
     /**
      * Total amount for charge.
      *
-     * @var int
+     * @var int|float
      */
     protected $price = 0;
 
@@ -73,13 +76,14 @@ trait PerformsCharges
      */
     public function charge()
     {
-        return $this->generateCheckoutForm();
+        return $this->generateCheckoutForm()
+            ->getCheckoutFormContent();
     }
 
     /**
      * Generate a new checkout form.
      *
-     * @return mixed
+     * @return CheckoutFormInitialize
      */
     protected function generateCheckoutForm()
     {
@@ -91,15 +95,14 @@ trait PerformsCharges
         $request->setCurrency(config('kasiyer.currency'));
         $request->setPaymentGroup(PaymentGroup::PRODUCT);
         $request->setCallbackUrl($this->returnTo);
-        $request->setEnabledInstallments(1);
+        $request->setEnabledInstallments([1]);
 
         $request->setBuyer($this->buyer());
         $request->setShippingAddress($this->shippingAddress());
         $request->setBillingAddress($this->billingAddress());
         $request->setBasketItems($this->basketItems);
 
-        return CheckoutFormInitialize::create($request, Kasiyer::iyzicoOptions())
-            ->getCheckoutFormContent();
+        return CheckoutFormInitialize::create($request, Kasiyer::iyzicoOptions());
     }
 
     /**
@@ -195,5 +198,60 @@ trait PerformsCharges
         } else {
             return $_SERVER['REMOTE_ADDR'];
         }
+    }
+
+    /**
+     * Handle checkout form result.
+     *
+     * @param string $token
+     * @return bool|\Iyzipay\Model\CheckoutForm
+     */
+    public function handleCharge(string $token)
+    {
+        $result = Kasiyer::getCheckoutFormResult($token);
+
+        if ($result->getStatus() === "success") {
+            return $result;
+        }
+
+        return false;
+    }
+
+    /**
+     * Refund a given payment.
+     *
+     * @param string $paymentId
+     * @param null $amount
+     * @param string $reason
+     * @return bool|Refund
+     */
+    public function refund($paymentId, $amount = null, $reason = null)
+    {
+        $payment = Kasiyer::getPayment($paymentId);
+
+        $request = new CreateRefundRequest();
+        $request->setPaymentTransactionId($payment->getPaymentItems()[0]->getPaymentTransactionId());
+        $request->setIp($this->ipAddress());
+
+        // Set if price not null otherwise set paid price.
+        if ($amount) {
+            $request->setPrice($amount);
+        } else {
+            $request->setPrice($payment->getPaidPrice());
+        }
+
+        // Set reason if it is not null.
+        if ($reason) {
+            $request->setReason(RefundReason::OTHER);
+            $request->setDescription($reason);
+        }
+
+        $refund = Refund::create($request, Kasiyer::iyzicoOptions());
+
+        if ($refund->getStatus() === "success") {
+            return $refund;
+        }
+
+        return false;
     }
 }
