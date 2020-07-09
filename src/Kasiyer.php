@@ -8,6 +8,7 @@ use Iyzipay\Model\Subscription\RetrieveSubscriptionCheckoutForm;
 use Iyzipay\Model\Subscription\SubscriptionPricingPlan;
 use Iyzipay\Options;
 use Iyzipay\Request\RetrieveCheckoutFormRequest;
+use Iyzipay\Request\RetrievePaymentRequest;
 use Iyzipay\Request\Subscription\RetrieveSubscriptionCreateCheckoutFormRequest;
 use Iyzipay\Request\Subscription\SubscriptionRetrievePricingPlanRequest;
 
@@ -75,6 +76,20 @@ class Kasiyer
         $request->setToken($token);
 
         return CheckoutForm::retrieve($request, self::iyzicoOptions());
+    }
+
+    /**
+     * Retrieve given payment.
+     *
+     * @param $paymentId
+     * @return \Iyzipay\Model\Payment
+     */
+    public static function getPayment($paymentId)
+    {
+        $request = new RetrievePaymentRequest();
+        $request->setPaymentId($paymentId);
+
+        return \Iyzipay\Model\Payment::retrieve($request, Kasiyer::iyzicoOptions());
     }
 
     /**

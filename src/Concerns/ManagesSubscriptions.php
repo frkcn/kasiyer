@@ -134,7 +134,7 @@ trait ManagesSubscriptions
      * Handle checkout form result.
      *
      * @param string $token
-     * @return bool
+     * @return bool|\Iyzipay\Model\CheckoutForm
      */
     public function handleSubscription(string $token)
     {
@@ -158,7 +158,7 @@ trait ManagesSubscriptions
                 'trial_ends_at' => $result->getTrialEndDate(),
             ]);
 
-            return true;
+            return $checkoutFormResult;
         }
 
         return false;

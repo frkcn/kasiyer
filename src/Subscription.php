@@ -493,10 +493,7 @@ class Subscription extends Model
     {
        $paymentId = $this->iyzicoInfo()->getOrders()[1]->paymentAttempts[0]->paymentId;
 
-       $request = new RetrievePaymentRequest();
-       $request->setPaymentId($paymentId);
-
-       return \Iyzipay\Model\Payment::retrieve($request, Kasiyer::iyzicoOptions());
+       return Kasiyer::getPayment($paymentId);
     }
 
     /**
