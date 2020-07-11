@@ -445,7 +445,7 @@ class Subscription extends Model
     /**
      * Retry subscription for failed payment.
      *
-     * @return bool
+     * @return bool|Subscription
      */
     public function retry()
     {
@@ -462,7 +462,9 @@ class Subscription extends Model
            $this->iyzico_status = self::STATUS_ACTIVE;
            $this->save();
 
-           return true;
+           $this->iyzicoInfo = null;
+
+           return $this;
        }
 
        return false;
