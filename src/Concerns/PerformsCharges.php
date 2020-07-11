@@ -88,7 +88,7 @@ trait PerformsCharges
     protected function generateCheckoutForm()
     {
         $request = new CreateCheckoutFormInitializeRequest();
-        $request->setLocale(config('kasiyer.currency_locale'));
+        $request->setLocale(config('kasiyer.locale'));
         $request->setConversationId($this->customer->id);
         $request->setPrice($this->price);
         $request->setPaidPrice($this->price);

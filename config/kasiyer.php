@@ -29,17 +29,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Kasiyer Callback Url
-    |--------------------------------------------------------------------------
-    |
-    | This is the callback URL where Iyzico sends subscription result.
-    |
-    */
-
-    'callback_url' => env('KASIYER_CALLBACK_URL'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Kasiyer Path
     |--------------------------------------------------------------------------
     |
@@ -53,19 +42,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Kasiyer Model
-    |--------------------------------------------------------------------------
-    |
-    | This is the model in your application that implements the Billable trait
-    | provided by Kasiyer. It will serve as the primary model you use while
-    | interacting with Kasiyer related methods, subscriptions, and so on.
-    |
-    */
-
-    'model' => env('KASIYER_MODEL', App\User::class),
-
-    /*
-    |--------------------------------------------------------------------------
     | Currency
     |--------------------------------------------------------------------------
     |
@@ -75,7 +51,7 @@ return [
     |
     */
 
-    'currency' => env('KASIYER_CURRENCY', 'usd'),
+    'currency' => env('KASIYER_CURRENCY', 'TRY'),
 
     /*
     |--------------------------------------------------------------------------
@@ -88,6 +64,6 @@ return [
     |
     */
 
-    'currency_locale' => env('KASIYER_CURRENCY_LOCALE', 'en'),
+    'locale' => env('KASIYER_LOCALE', 'tr'),
 
 ];

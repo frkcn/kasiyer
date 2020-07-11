@@ -73,7 +73,7 @@ class SubscriptionBuilder
     {
         $request = new SubscriptionCreateCheckoutFormRequest();
         $request->setConversationId($this->billable->id);
-        $request->setLocale(config('kasiyer.currency_locale'));
+        $request->setLocale(config('kasiyer.locale'));
         $request->setPricingPlanReferenceCode($this->plan);
         $request->setCallbackUrl($this->returnTo);
         $request->setCustomer($this->billable->customer->asIyzicoCustomer());

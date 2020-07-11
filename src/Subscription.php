@@ -346,7 +346,7 @@ class Subscription extends Model
     public function cardUpdate()
     {
         $request = new SubscriptionCardUpdateWithSubscriptionReferenceCodeRequest();
-        $request->setLocale(config('kasiyer.currency_locale'));
+        $request->setLocale(config('kasiyer.locale'));
         $request->setConversationId($this->billable_id);
         $request->setSubscriptionReferenceCode($this->iyzico_id);
         $request->setCallbackUrl($this->returnTo);
@@ -368,7 +368,7 @@ class Subscription extends Model
         }
 
         $request = new SubscriptionUpgradeRequest();
-        $request->setLocale(config('kasiyer.currency_locale'));
+        $request->setLocale(config('kasiyer.locale'));
         $request->setSubscriptionReferenceCode($this->iyzico_id);
         $request->setNewPricingPlanReferenceCode($plan);
         $request->setUpgradePeriod("NOW");
