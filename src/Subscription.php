@@ -482,6 +482,19 @@ class Subscription extends Model
     }
 
     /**
+     * Get the last order for the subscription.
+     *
+     * @return Payment
+     */
+    public function lastPayment()
+    {
+        $subscription = $this->iyzicoInfo();
+        $order = $subscription->getOrders()[1];
+
+        return new Payment($order);
+    }
+
+    /**
      * Get info from Iyzico about subscription.
      *
      * @return SubscriptionDetails
