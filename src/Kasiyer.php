@@ -29,6 +29,13 @@ class Kasiyer
     const IYZICO_VERSION = '2019-12-10';
 
     /**
+     * Indicates if Kasiyer migrations will be run.
+     *
+     * @var bool
+     */
+    public static $runsMigrations = true;
+
+    /**
      * Get the default Iyzico API options.
      *
      * @return Options
@@ -104,6 +111,18 @@ class Kasiyer
         $request->setPricingPlanReferenceCode($referenceCode);
 
         return SubscriptionPricingPlan::retrieve($request, self::iyzicoOptions());
+    }
+
+    /**
+     * Configure Kasiyer to not register its migrations.
+     *
+     * @return static
+     */
+    public static function ignoreMigrations()
+    {
+        static::$runsMigrations = false;
+
+        return new static;
     }
 
     /**

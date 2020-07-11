@@ -64,7 +64,7 @@ class KasiyerServiceProvider extends ServiceProvider
      */
     protected function registerMigrations()
     {
-        if ($this->app->runningInConsole()) {
+        if (Kasiyer::$runsMigrations && $this->app->runningInConsole()) {
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         }
     }
