@@ -524,18 +524,6 @@ class Subscription extends Model
     }
 
     /**
-     * Get info about last subscription payment.
-     *
-     * @return \Iyzipay\Model\Payment
-     */
-    public function lastPayment()
-    {
-       $paymentId = $this->iyzicoInfo()->getOrders()[1]->paymentAttempts[0]->paymentId;
-
-       return Kasiyer::getPayment($paymentId);
-    }
-
-    /**
      * Get the card brand from the subscription.
      *
      * @return string
