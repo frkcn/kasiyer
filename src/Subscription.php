@@ -383,6 +383,8 @@ class Subscription extends Model
                 'iyzico_plan' => $subscription->getPricingPlanReferenceCode(),
             ])->save();
 
+            $this->iyzicoInfo = null;
+
             return $this;
         }
 
@@ -412,6 +414,30 @@ class Subscription extends Model
         }
 
         $this->save();
+
+        $this->iyzicoInfo = null;
+
+        return $this;
+    }
+
+    /**
+     * Cancel the subscription immediately.
+     *
+     * @return $this
+     */
+    public function cancelNow()
+    {
+        $request = new SubscriptionCancelRequest();
+        $request->setSubscriptionReferenceCode($this->iyzico_id);
+
+        SubscriptionCancel::cancel($request, Kasiyer::iyzicoOptions());
+
+        $this->forceFill([
+            'iyzico_status' => self::STATUS_CANCELED,
+            'ends_at' => Carbon::now(),
+        ])->save();
+
+        $this->iyzicoInfo = null;
 
         return $this;
     }
