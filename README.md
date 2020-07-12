@@ -3,6 +3,8 @@
 ## Introduction
 Kasiyer makes easy Iyzico's subscription billing services for your Laravel application. It handles almost requirements for subscription billing code. In addition to subscription management, Kasiyer also provides swapping subscriptions, cancelling subscription, single charges and refunds.
 
+This package strongly based on offical [Laravel Cashier Stripe](https://github.com/laravel/cashier-stripe) and [Laravel Cashier Paddle](https://github.com/laravel/cashier-paddle).
+
 > Kasiyer Iyzico is currently in beta. Using Kasiyer Iyzico in production at your own risk. Thanks for your help with testing and reporting bugs.
 
 ## Installation
